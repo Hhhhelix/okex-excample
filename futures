@@ -20,7 +20,7 @@ console.log('spot.......');
 wss.connect();
 wss.on('open', data=>{
     console.log("websocket open!!!");
-    wss.login(config.wskey, config.wssecret, config.passphrase);
+    wss.login(config.httpkey, config.httpsecret, config.passphrase);
     wss.subscribe('["futures/position:LTC-USD-200327", "futures/account:LTC", "futures/order:LTC-USD-200327", "futures/order_algo:LTC-USD-200327", "futures/ticker:LTC-USD-200327"]');
    
 });
