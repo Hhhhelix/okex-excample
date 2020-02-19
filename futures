@@ -1,0 +1,78 @@
+var EventEmitter = require('events').EventEmitter;
+const { PublicClient } = require('@okfe/okex-node');
+const { V3WebsocketClient } = require('@okfe/okex-node');
+const { AuthenticatedClient } = require('@okfe/okex-node');
+
+var config  = require('./config');
+const pClient = new PublicClient(urlHost);
+const authClient = new AuthenticatedClient(config.httpkey, config.httpsecret, config.passphrase, config.urlHost);
+
+const wss = new V3WebsocketClient(config.websocekHost);
+
+const event = new EventEmitter();    //事件监听器，event.emit()设置被监听事件，event.on()当监听到事件时执行。
+
+var currency = 'ltc';
+
+var futures_instrument_id = "LTC-USD-200327";
+
+//websocket 初始化
+console.log('spot.......');
+wss.connect();
+wss.on('open', data=>{
+    console.log("websocket open!!!");
+    wss.login(config.wskey, config.wssecret, config.passphrase);
+    wss.subscribe('["futures/position:LTC-USD-200327", "futures/account:LTC", "futures/order:LTC-USD-200327", "futures/order_algo:LTC-USD-200327", "futures/ticker:LTC-USD-200327"]');
+   
+});
+wss.on('message', wsMessage);
+//console.log(data);
+
+
+
+/*************************** ETT test examples ******************************/
+//验证通过
+//authClient.ett().getAccounts(ett_currency).then(res => console.log(JSON.stringify(res)));
+//pClient.ett().getConstituents(ett_currency).then(res => console.log(JSON.stringify(res)));
+
+
+
+/*************************** futures test examples ******************************/
+//验证通过
+//pClient.futures().getInstruments().then(res => console.log(JSON.stringify(res)));
+//authClient.futures().getPosition(futures_instrument_id).then(res => console.log(JSON.stringify(res)));
+
+/*************************** spot api test **********************************/
+//验证通过
+//authClient.spot().getAccounts(currency).then(res => console.log(JSON.stringify(res)));
+
+/*************************** wallet test examples ******************************/
+//验证通过
+//authClient.account().getCurrencies().then(res => console.log(JSON.stringify(res)));  
+
+
+//websocket 返回消息
+function wsMessage(data){
+    //console.log(`!!! websocket message =${data}`);   //`${}`   js的模板字符串，无需用+。  注意要加反引号，在1左边
+    var obj = JSON.parse(data);   //
+    console.log('已连接');
+    
+    var eventType = obj.event;
+    if(eventType == 'login'){
+        //登录消息
+        if(obj.success == true){
+            event.emit('login');
+        }
+    }else if(eventType == undefined){
+        //行情消息相关
+        tableMsg(obj);
+    }
+}
+
+// function tableMsg(marketData){
+//     var tableType = marketData.table;
+//     if(tableType != undefined){
+//         //行情数据
+//         var asks = marketData.data[0].asks;
+//         var bids = marketData.data[0].bids;
+//     }
+// }
